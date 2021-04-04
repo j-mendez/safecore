@@ -10,6 +10,7 @@ import {
   callHandlerEveryN
 } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND, NUM_ITEMS } from "@app/config"
+import "@app/client/mumble"
 
 const app = express()
 
