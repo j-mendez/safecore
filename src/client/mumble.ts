@@ -11,29 +11,34 @@ const options = {
 
 let voice = { data: null }
 
-console.log("Connecting")
-mumble.connect(
-  process.env.MUMBLE_URL || "127.0.0.1:64738",
-  options,
-  function (error: any, connection: Connection) {
-    if (error) {
-      throw new Error(error)
+const mumbleConnect = () => {
+  return mumble.connect(
+    process.env.MUMBLE_URL || "127.0.0.1:64738",
+    options,
+    function (error: any, connection: Connection) {
+      console.log("Connecting")
+      if (error) {
+        throw new Error(error)
+      }
+      console.log("Connected")
+      connection.authenticate("ExampleUser", null)
+      connection.on("initialized", onInit)
+      connection.on("voice", onVoice)
     }
-    console.log("Connected")
-    connection.authenticate("ExampleUser", null)
-    connection.on("initialized", onInit)
-    connection.on("voice", onVoice)
-  }
-)
+  )
+}
 
-var onInit = function (connection) {
-  // Connection is authenticated and usable.
+const onInit = function (connection) {
   console.log(["Connection initialized", connection.users])
 }
 
-var onVoice = function (event) {
+const onVoice = function (event) {
   console.log("Mixed voice")
   var pcmData = voice.data
   console.log(pcmData)
   console.log(event)
 }
+
+mumbleConnect()
+
+export { mumbleConnect }
