@@ -1,7 +1,7 @@
 #!/bin/sh
 
-PRIVATE_KEY=key.key
-PUBLIC_KEY=cert.key
+PRIVATE_KEY=key.pem
+PUBLIC_KEY=cert.pem
 
 if [[ ! -e "$PRIVATE_KEY" ]]; then
 	echo "creating private key"

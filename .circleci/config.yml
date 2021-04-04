@@ -1,7 +1,27 @@
-orbs:
-  node: circleci/node@4.0
 version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.2
+jobs:
+  core:
+    docker:
+      - image: circleci/node:10.14.2
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+            - node-v1-{{ .Branch }}-
+            - node-v1-
+      - run:
+          command: bash bootstrap.sh && npm install && npm test
+      - save_cache:
+          paths:
+            - ~/usr/local/lib/node_modules
+          key: node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+      - codecov/upload:
+          file: "./coverage/clover.xml"
 workflows:
-  test:
+  build_and_test:
     jobs:
-      - node/test
+      - core
+

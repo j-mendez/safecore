@@ -2,9 +2,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "target": "es5",
-    "lib": ["dom", "es6"],
+    "lib": ["es6"],
     "module": "commonjs",
-    "jsx": "react",
     "sourceMap": true,
     "allowJs": true,
     "moduleResolution": "node",
@@ -24,7 +23,11 @@
     "baseUrl": ".",
     "paths": {
       "@app/*": ["./src/*"]
-    }
+    },
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": ["src"],
   "exclude": ["node_modules"]
