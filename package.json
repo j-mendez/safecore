@@ -1,7 +1,7 @@
 {
   "name": "safecore",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "start": "dist/server.js",
   "engines": {
     "node": "v10.14.x"

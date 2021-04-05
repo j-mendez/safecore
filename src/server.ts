@@ -10,7 +10,7 @@ import {
   callHandlerEveryN
 } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND, NUM_ITEMS } from "@app/config"
-import "@app/client/mumble"
+import { mumbleConnect, MumbleData } from "@app/client/mumble"
 
 const app = express()
 
@@ -23,11 +23,28 @@ app.get("*", function (req, res) {
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
+const connections = mumbleConnect()
+
 wss.on("connection", function (ws) {
   let destroy
 
   ws.on("message", function (message) {
-    if (message === "feed") {
+    const userMessage =
+      typeof message === "string" ? JSON.parse(message) : message
+    const name = userMessage?.name
+    console.log(userMessage)
+    if (name === "Ping") {
+      if (ws.readyState === 1) {
+        ws.send(true)
+      }
+      console.log(connections)
+    }
+    if (name === "Channels") {
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify(MumbleData.channels))
+      }
+    }
+    if (name === "Feed") {
       destroy = callHandlerEveryN(function () {
         if (ws.readyState === 1) {
           ws.send(

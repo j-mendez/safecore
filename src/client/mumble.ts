@@ -7,9 +7,11 @@ const options = {
   cert: fs.readFileSync("cert.pem")
 } as any
 
+let MumbleData: any = { users: null }
+
 const mumbleConnect = (user?: string) => {
   try {
-    mumble.connect(
+    return mumble.connect(
       process.env.MUMBLE_URL || "127.0.0.1:64738",
       options,
       function (error: any, connection: Connection) {
@@ -29,15 +31,16 @@ const mumbleConnect = (user?: string) => {
 }
 
 const onInit = function (connection) {
-  console.log(["Connection initialized", connection.users])
+  console.log(["Connection initialized"])
+  MumbleData = {
+    users: connection.users,
+    channels: connection.channels
+  }
 }
 
 const onVoice = function (event) {
   console.log("Mixed voice")
-
   console.log(event)
 }
 
-mumbleConnect()
-
-export { mumbleConnect }
+export { mumbleConnect, MumbleData }
