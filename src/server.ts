@@ -41,7 +41,7 @@ wss.on("connection", function (ws) {
     }
     if (name === "Channels") {
       if (ws.readyState === 1) {
-        ws.send(JSON.stringify(MumbleData.channels))
+        ws.send(JSON.stringify({ data: MumbleData.channels, type: "channels" }))
       }
     }
     if (name === "Feed") {
