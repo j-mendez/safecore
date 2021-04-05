@@ -5,7 +5,13 @@
 
 central core API for safe application
 
+## Getting Started
+
 1. `yarn install`
 2. `openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem`
-2. `yarn dev`
+3. `yarn dev`
+
+### Docker
+
+if your using docker you need to connect to murmur by getting the container ip. Example `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' murmur`. Then create a .env file MURMUR_URL=dockerip.
 
