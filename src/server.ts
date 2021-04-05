@@ -10,29 +10,29 @@ import {
   callHandlerEveryN
 } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND, NUM_ITEMS } from "@app/config"
-import { mumbleConnect, MumbleData } from "@app/client/mumble"
+import { Mumble, MumbleData } from "@app/client/mumble"
 
 const app = express()
+const mumble = new Mumble()
 
 app.use("/static", express.static(join(__dirname, "public")))
-
 app.get("*", function (req, res) {
   buildReactTemplateStream(res)
 })
 
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
-
-const connections = mumbleConnect()
+const connections = mumble.connect()
 
 wss.on("connection", function (ws) {
   let destroy
 
-  ws.on("message", function (message) {
-    const userMessage =
-      typeof message === "string" ? JSON.parse(message) : message
-    const name = userMessage?.name
-    console.log(userMessage)
+  ws.on("message", function (_message) {
+    const message =
+      typeof _message === "string" ? JSON.parse(_message) : _message
+    const name = message?.name
+
+    console.log(message)
     if (name === "Ping") {
       if (ws.readyState === 1) {
         ws.send(true)
