@@ -12,7 +12,6 @@ import { PORT, MESSAGES_PER_SECOND, NUM_ITEMS } from "@app/config"
 import { MumbleInstance, MumbleData } from "@app/client/mumble"
 
 const app = express()
-const mumble = new MumbleInstance()
 
 app.get("*", function (req, res) {
   buildReactTemplateStream(res)
@@ -20,31 +19,35 @@ app.get("*", function (req, res) {
 
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
-const connections = mumble.connect()
+const adminMumble = new MumbleInstance()
 
-console.log(connections)
+adminMumble.connect()
 
 wss.on("connection", function (ws) {
+  const mumble = new MumbleInstance()
   let destroy
+  let connect
 
-  ws.on("message", function (_message) {
+  ws.on("message", async function (_message) {
     const message =
       typeof _message === "string" ? JSON.parse(_message) : _message
     const name = message?.name
 
-    console.log(message)
-
-    if (name === "Ping") {
-      if (ws.readyState === 1) {
-        ws.send("true")
-      }
-    }
-
+    // Connection to Channel
     if (name === "Connect") {
+      const uname = message?.user?.name || String("Anonymous" + Math.random())
+      connect = mumble.connect({
+        name: uname,
+        pass: message?.pass,
+        channel: message?.channel
+      })
       if (ws.readyState === 1) {
+        console.log(`encrypted connection ${connect?.encrypted}`)
         ws.send("true")
       }
     }
+
+    // Create Channel
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
         ws.send(
@@ -52,6 +55,8 @@ wss.on("connection", function (ws) {
         )
       }
     }
+
+    // Get Channels
     if (name === "Channels") {
       if (ws.readyState === 1) {
         ws.send(
@@ -62,7 +67,9 @@ wss.on("connection", function (ws) {
         )
       }
     }
-    if (name === "Feed") {
+
+    // TODO: Hard Audio Stream
+    if (name === "Stream") {
       destroy = callHandlerEveryN(function () {
         if (ws.readyState === 1) {
           ws.send(

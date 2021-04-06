@@ -1,3 +1,5 @@
+require("dotenv").config()
+
 const NUM_ITEMS = 50
 const MESSAGES_PER_SECOND = 2000
 
