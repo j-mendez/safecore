@@ -23,20 +23,19 @@ class MumbleInstance {
   connection: Connection
   onInit = connection => {
     console.log(["Connection initialized"])
-    MumbleData = {
-      users: connection.users,
-      channels: connection.channels
-    }
+    MumbleData.users = connection.users
+    MumbleData.channels = connection.channels
     connection.rootChannel.setName("Global")
     const channel = new Channel(connection.rootChannel, this.connection)
 
-    defaultChannels.forEach(element => {
-      channel.addSubChannel(element, {})
+    defaultChannels.forEach((element: string) => {
+      if (!this.connection.channelByName(element)) {
+        channel.addSubChannel(element, {})
+      }
     })
   }
   onVoice = event => {
-    console.log("Mixed voice")
-    console.log(event)
+    console.log(["Mixed voice", event])
   }
   connect = (user?: string) => {
     try {
@@ -60,7 +59,6 @@ class MumbleInstance {
     console.log("Connected")
     this.connection = connection
     connection.authenticate("SuperUser", "admin")
-
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
   }
