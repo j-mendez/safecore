@@ -22,20 +22,27 @@ const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 const connections = mumble.connect()
 
+console.log(connections)
+
 wss.on("connection", function (ws) {
   let destroy
-  console.log(mumble)
 
   ws.on("message", function (_message) {
     const message =
       typeof _message === "string" ? JSON.parse(_message) : _message
     const name = message?.name
 
-    console.log([message, connections])
+    console.log(message)
 
     if (name === "Ping") {
       if (ws.readyState === 1) {
-        ws.send(true)
+        ws.send("true")
+      }
+    }
+
+    if (name === "Connect") {
+      if (ws.readyState === 1) {
+        ws.send("true")
       }
     }
     if (name === "CreateChannel") {

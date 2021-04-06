@@ -1,6 +1,5 @@
 import Mumble from "mumble"
 import Channel from "mumble/lib/Channel"
-
 import { mumbleOptions } from "../config"
 import type { Connection } from "mumble"
 
