@@ -1,4 +1,6 @@
 import Mumble from "mumble"
+import Channel from "mumble/lib/Channel"
+
 import { mumbleOptions } from "../config"
 import type { Connection } from "mumble"
 
@@ -10,11 +12,14 @@ let MumbleData: any = {
   }
 }
 
+const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
+
 class MumbleInstance {
   constructor() {
     console.log("Connecting")
     this.connection = null
   }
+  client: any
   connection: Connection
   onInit = connection => {
     console.log(["Connection initialized"])
@@ -22,7 +27,12 @@ class MumbleInstance {
       users: connection.users,
       channels: connection.channels
     }
-    connection.rootChannel.setName("Lobby")
+    connection.rootChannel.setName("Global")
+    const channel = new Channel(connection.rootChannel, this.connection)
+
+    defaultChannels.forEach(element => {
+      channel.addSubChannel(element, {})
+    })
   }
   onVoice = event => {
     console.log("Mixed voice")
@@ -30,11 +40,15 @@ class MumbleInstance {
   }
   connect = (user?: string) => {
     try {
-      return Mumble.connect(
+      const client = Mumble.connect(
         process.env.MUMBLE_URL || "127.0.0.1:64738",
         mumbleOptions,
         this.establish
       )
+
+      this.client = client
+
+      return client
     } catch (e) {
       console.error(e)
     }
@@ -44,10 +58,11 @@ class MumbleInstance {
       throw new Error(error)
     }
     console.log("Connected")
-    connection.authenticate("Quick", null)
+    this.connection = connection
+    connection.authenticate("SuperUser", "admin")
+
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
-    this.connection = connection
   }
 }
 
