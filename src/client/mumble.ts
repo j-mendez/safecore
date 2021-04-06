@@ -2,7 +2,13 @@ import Mumble from "mumble"
 import { mumbleOptions } from "../config"
 import type { Connection } from "mumble"
 
-let MumbleData: any = { users: null }
+let MumbleData: any = {
+  users: null,
+  channels: [],
+  get flatChannels() {
+    return Object.values(this.channels)
+  }
+}
 
 class MumbleInstance {
   constructor() {

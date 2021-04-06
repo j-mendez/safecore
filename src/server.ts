@@ -40,12 +40,19 @@ wss.on("connection", function (ws) {
     }
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
-        ws.send(JSON.stringify({ data: MumbleData.channels, type: "channels" }))
+        ws.send(
+          JSON.stringify({ data: MumbleData.getChannels, type: "channels" })
+        )
       }
     }
     if (name === "Channels") {
       if (ws.readyState === 1) {
-        ws.send(JSON.stringify({ data: MumbleData.channels, type: "channels" }))
+        ws.send(
+          JSON.stringify({
+            data: Object.values(MumbleData.channels),
+            type: "channels"
+          })
+        )
       }
     }
     if (name === "Feed") {
