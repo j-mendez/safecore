@@ -1,5 +1,6 @@
 import Mumble from "mumble"
 import Channel from "mumble/lib/Channel"
+import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection } from "mumble"
 
@@ -13,10 +14,15 @@ let MumbleData: any = {
 
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
+type Channel = {
+  channel_id: number
+  name: string
+}
+
 type User = {
   name?: string
   pass?: string
-  channel?: string
+  channel?: Channel
 }
 
 class MumbleInstance {
@@ -32,10 +38,11 @@ class MumbleInstance {
 
     // admin create default channells
     if (!this.user) {
+      const channel = new Channel(connection.rootChannel, this.connection)
+
       MumbleData.users = connection.users
       MumbleData.channels = connection.channels
       connection.rootChannel.setName("Global")
-      const channel = new Channel(connection.rootChannel, this.connection)
 
       defaultChannels.forEach((element: string) => {
         if (!this.connection.channelByName(element)) {
@@ -45,7 +52,12 @@ class MumbleInstance {
       return
     }
 
-    // var user = this.connection.userByName(this.user.name)
+    const channelSource = this.connection.channelById(
+      this.user?.channel?.channel_id
+    )
+    if (channelSource) {
+      this.connection.user.moveToChannel(channelSource)
+    }
   }
   onVoice = event => {
     console.log(["Mixed voice", event])
@@ -79,9 +91,6 @@ class MumbleInstance {
     )
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
-    connection.on("user-connect", user => {
-      console.log(user.name)
-    })
   }
 }
 
