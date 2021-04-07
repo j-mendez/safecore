@@ -21,12 +21,11 @@ const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 const adminMumble = new MumbleInstance()
 
-adminMumble.connect()
+adminMumble.connect({})
 
 wss.on("connection", function (ws) {
   const mumble = new MumbleInstance()
   let destroy
-  let connect
 
   ws.on("message", async function (_message) {
     const message =
@@ -36,14 +35,16 @@ wss.on("connection", function (ws) {
     // Connection to Channel
     if (name === "Connect") {
       const uname = message?.user?.name || String("Anonymous" + Math.random())
-      connect = mumble.connect({
+      await mumble.connect({
         name: uname,
         pass: message?.pass,
         channel: message?.channel
       })
       if (ws.readyState === 1) {
-        console.log(`encrypted connection ${connect?.encrypted}`)
-        ws.send("true")
+        JSON.stringify({
+          data: mumble?.currentChannel?.users,
+          type: "channel-users"
+        })
       }
     }
 
