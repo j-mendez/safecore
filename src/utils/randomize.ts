@@ -1,5 +1,3 @@
-import { names } from "@app/static"
-
 /**
  * Returns random item(s) from array of string.
  *
@@ -8,7 +6,7 @@ import { names } from "@app/static"
  * @return {string} list[random] random one or two items.
  */
 function getRandomItemFromList(
-  list: string[] = names,
+  list: string[],
   multiple: boolean = true
 ): string {
   return list?.length

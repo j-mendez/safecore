@@ -18,8 +18,10 @@ For docker connections you need to connect to murmur by getting the container ip
 
 environmental variables are handled through `.env`, make sure to set SUPER_USER_PASSWORD to the password on your murmur instance.
 
+```
 SUPER_USER_PASSWORD=
-MURMUR_URL
+MURMUR_URL=
+```
 
 ### About
 

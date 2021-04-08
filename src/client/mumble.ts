@@ -4,14 +4,6 @@ import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Channel as ChannelProps, Connection } from "mumble"
 
-let MumbleData: any = {
-  users: null,
-  channels: [],
-  get flatChannels() {
-    return Object.values(this.channels)
-  }
-}
-
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
 type User = {
@@ -28,17 +20,13 @@ class MumbleInstance {
   currentChannel: Channel
   user: User
   connection: Connection
+  channels: ChannelProps[]
   resolve: (value: unknown) => void
   onInit = connection => {
     console.log(["Connection initialized"])
 
-    // admin create default channells
-    MumbleData.users = {
-      ...MumbleData.users,
-      ...connection.users
-    }
-    MumbleData.channels = {
-      ...MumbleData.channels,
+    this.channels = {
+      ...this.channels,
       ...connection.channels
     }
 
@@ -119,6 +107,9 @@ class MumbleInstance {
       }
     })
   }
+  get flatChannels() {
+    return Object.values(this.channels)
+  }
 }
 
-export { MumbleInstance, MumbleData }
+export { MumbleInstance }

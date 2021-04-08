@@ -8,7 +8,7 @@ afterAll(async () => {
 
 describe("realtime application api", () => {
   test("root can render", async () => {
-    return await request(app).get("/").expect(200)
+    return await request(app).get("/").expect(404)
   })
 
   test.todo("can connect to websocket")

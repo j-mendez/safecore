@@ -3,15 +3,11 @@ import http from "http"
 import WebSocket from "ws"
 import { AddressInfo } from "net"
 
-import { buildReactTemplateStream, callHandlerEveryN } from "@app/utils"
+import { callHandlerEveryN } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND } from "@app/config"
-import { MumbleInstance, MumbleData } from "@app/client/mumble"
+import { MumbleInstance } from "@app/client/mumble"
 
 const app = express()
-
-app.get("*", function (req, res) {
-  buildReactTemplateStream(res)
-})
 
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
@@ -19,12 +15,12 @@ const adminMumble = new MumbleInstance()
 
 adminMumble.connect({})
 
-wss.on("connection", function (ws) {
+wss.on("connection", function (ws: any) {
   console.log("Socket connected")
   const mumble = new MumbleInstance()
-  let destroy
+  let destroy: any
 
-  ws.on("message", async function (_message) {
+  ws.on("message", async function (_message: any) {
     const message =
       typeof _message === "string" ? JSON.parse(_message) : _message
     const name = message?.name
@@ -69,9 +65,7 @@ wss.on("connection", function (ws) {
     // Create Channel
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
-        ws.send(
-          JSON.stringify({ data: MumbleData.getChannels, type: "channels" })
-        )
+        ws.send(JSON.stringify({ data: {}, type: "create-channel" }))
       }
     }
 
@@ -80,27 +74,12 @@ wss.on("connection", function (ws) {
       if (ws.readyState === 1) {
         ws.send(
           JSON.stringify({
-            data: Object.values(MumbleData.channels),
+            data: Object.values(adminMumble.flatChannels),
             type: "channels"
           })
         )
       }
     }
-
-    // TODO: Hard Audio Stream
-    // if (name === "Stream") {
-    //   destroy = callHandlerEveryN(function () {
-    //     if (ws.readyState === 1) {
-    //       ws.send(
-    //         JSON.stringify({
-    //           id: Math.floor(Math.random() * NUM_ITEMS),
-    //           value: Math.floor(Math.random() * NUM_ITEMS),
-    //           name: Math.floor(Math.random() * NUM_ITEMS) + ""
-    //         })
-    //       )
-    //     }
-    //   }, 1000 / MESSAGES_PER_SECOND)
-    // }
   })
 
   ws.on("close", function () {

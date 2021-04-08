@@ -1,1 +1,1 @@
-export { MumbleData, MumbleInstance } from "./mumble"
+export { MumbleInstance } from "./mumble"
