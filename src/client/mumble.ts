@@ -92,6 +92,13 @@ class MumbleInstance {
       }
     })
   }
+  disconnect = () => {
+    try {
+      this.connection.disconnect()
+    } catch (e) {
+      console.error(e)
+    }
+  }
   establish = (error: any, connection: Connection) => {
     if (error) {
       throw new Error(error)

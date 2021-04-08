@@ -20,9 +20,10 @@ const adminMumble = new MumbleInstance()
 adminMumble.connect({})
 
 wss.on("connection", function (ws) {
+  console.log("Socket connected")
   const mumble = new MumbleInstance()
   let destroy
-  console.log("Socket connected")
+
   ws.on("message", async function (_message) {
     const message =
       typeof _message === "string" ? JSON.parse(_message) : _message
@@ -47,6 +48,21 @@ wss.on("connection", function (ws) {
         }
 
         destroy = callHandlerEveryN(detectUsers, MESSAGES_PER_SECOND)
+      }
+    }
+
+    if (name === "Disconnect") {
+      typeof destroy === "function" && destroy()
+      destroy = null
+      mumble.disconnect()
+
+      if (ws.readyState === 1) {
+        ws.send(
+          JSON.stringify({
+            data: [],
+            type: "channel-users"
+          })
+        )
       }
     }
 
@@ -88,6 +104,8 @@ wss.on("connection", function (ws) {
   })
 
   ws.on("close", function () {
+    mumble.disconnect()
+
     if (destroy) {
       destroy()
       destroy = null
