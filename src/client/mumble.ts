@@ -105,6 +105,13 @@ class MumbleInstance {
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
   }
+  get getUsersInChannel() {
+    return this?.currentChannel?.users.map(user => {
+      return {
+        name: user?.name
+      }
+    })
+  }
 }
 
 export { MumbleInstance, MumbleData }

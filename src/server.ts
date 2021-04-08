@@ -3,12 +3,8 @@ import http from "http"
 import WebSocket from "ws"
 import { AddressInfo } from "net"
 
-import {
-  getRandomItemFromList,
-  buildReactTemplateStream,
-  callHandlerEveryN
-} from "@app/utils"
-import { PORT, MESSAGES_PER_SECOND, NUM_ITEMS } from "@app/config"
+import { buildReactTemplateStream, callHandlerEveryN } from "@app/utils"
+import { PORT, MESSAGES_PER_SECOND } from "@app/config"
 import { MumbleInstance, MumbleData } from "@app/client/mumble"
 
 const app = express()
@@ -26,7 +22,7 @@ adminMumble.connect({})
 wss.on("connection", function (ws) {
   const mumble = new MumbleInstance()
   let destroy
-
+  console.log("Socket connected")
   ws.on("message", async function (_message) {
     const message =
       typeof _message === "string" ? JSON.parse(_message) : _message
@@ -41,10 +37,16 @@ wss.on("connection", function (ws) {
         channel: message?.channel
       })
       if (ws.readyState === 1) {
-        JSON.stringify({
-          data: mumble?.currentChannel?.users,
-          type: "channel-users"
-        })
+        const detectUsers = () => {
+          ws.send(
+            JSON.stringify({
+              data: mumble?.getUsersInChannel || [],
+              type: "channel-users"
+            })
+          )
+        }
+
+        destroy = callHandlerEveryN(detectUsers, MESSAGES_PER_SECOND)
       }
     }
 
@@ -70,19 +72,19 @@ wss.on("connection", function (ws) {
     }
 
     // TODO: Hard Audio Stream
-    if (name === "Stream") {
-      destroy = callHandlerEveryN(function () {
-        if (ws.readyState === 1) {
-          ws.send(
-            JSON.stringify({
-              id: Math.floor(Math.random() * NUM_ITEMS),
-              value: Math.floor(Math.random() * NUM_ITEMS),
-              name: getRandomItemFromList()
-            })
-          )
-        }
-      }, 1000 / MESSAGES_PER_SECOND)
-    }
+    // if (name === "Stream") {
+    //   destroy = callHandlerEveryN(function () {
+    //     if (ws.readyState === 1) {
+    //       ws.send(
+    //         JSON.stringify({
+    //           id: Math.floor(Math.random() * NUM_ITEMS),
+    //           value: Math.floor(Math.random() * NUM_ITEMS),
+    //           name: Math.floor(Math.random() * NUM_ITEMS) + ""
+    //         })
+    //       )
+    //     }
+    //   }, 1000 / MESSAGES_PER_SECOND)
+    // }
   })
 
   ws.on("close", function () {
