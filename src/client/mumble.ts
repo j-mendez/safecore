@@ -94,7 +94,7 @@ class MumbleInstance {
   }
   disconnect = () => {
     try {
-      this.connection.disconnect()
+      this.connection?.disconnect()
     } catch (e) {
       console.error(e)
     }
