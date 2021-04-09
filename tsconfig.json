@@ -19,7 +19,6 @@
     "resolveJsonModule": true,
     "removeComments": true,
 	  "declaration": true,
-	  "declarationDir": "types",
     "baseUrl": ".",
     "paths": {
       "@app/*": ["./src/*"]
