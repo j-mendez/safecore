@@ -6,6 +6,8 @@ central core API for decrypted voice application
 
 ## Getting Started
 
+Node version v10.14.0 is required for the application to work. Run `nvm use` to get the proper version for the project.
+
 1. `yarn install`
 2. `openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem`
 3. `yarn dev`
