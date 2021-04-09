@@ -2,7 +2,6 @@ import express from "express"
 import http from "http"
 import WebSocket from "ws"
 import { AddressInfo } from "net"
-
 import { callHandlerEveryN } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND } from "@app/config"
 import { MumbleInstance } from "@app/client/mumble"
@@ -27,9 +26,8 @@ wss.on("connection", function (ws: any) {
 
     // Connection to Channel
     if (name === "Connect") {
-      const uname = message?.user?.name || String("Anonymous" + Math.random())
       await mumble.connect({
-        name: uname,
+        name: message?.user?.name || String("Anonymous" + Math.random()),
         pass: message?.pass,
         channel: message?.channel
       })
@@ -65,6 +63,18 @@ wss.on("connection", function (ws: any) {
     // Create Channel
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
+        const channelName = message?.channel
+
+        adminMumble.createChannel(channelName)
+
+        await mumble.connect({
+          name: message?.user?.name || String("Anonymous" + Math.random()),
+          pass: message?.pass,
+          channel: {
+            name: channelName
+          }
+        })
+
         ws.send(JSON.stringify({ data: {}, type: "create-channel" }))
       }
     }
@@ -84,7 +94,6 @@ wss.on("connection", function (ws: any) {
 
   ws.on("close", function () {
     mumble.disconnect()
-
     if (destroy) {
       destroy()
       destroy = null

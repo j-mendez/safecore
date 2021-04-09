@@ -2,14 +2,13 @@ import Mumble from "mumble"
 import Channel from "mumble/lib/Channel"
 import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
-import type { Channel as ChannelProps, Connection } from "mumble"
-
+import type { Connection, ChannelProps } from "../types"
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
 type User = {
   name?: string
   pass?: string
-  channel?: { channel_id: number } & ChannelProps
+  channel?: Partial<ChannelProps> & { channel_id?: number }
 }
 
 class MumbleInstance {
@@ -18,34 +17,36 @@ class MumbleInstance {
     this.connection = null
   }
   currentChannel: Channel
+  rootChannel: Channel
   user: User
   connection: Connection
+  establishedConnection: Connection
   channels: ChannelProps[]
   resolve: (value: unknown) => void
   onInit = connection => {
     console.log(["Connection initialized"])
-
-    this.channels = {
-      ...this.channels,
-      ...connection.channels
-    }
+    this.establishedConnection = connection
 
     if (!this.user) {
-      const channel = new Channel(connection.rootChannel, this.connection)
-
-      connection.rootChannel.setName("Global")
-
+      this.rootChannel = new Channel(connection.rootChannel, this.connection)
+      // connection.rootChannel.setName("Global")
       defaultChannels.forEach((element: string) => {
         if (!this.connection.channelByName(element)) {
-          channel.addSubChannel(element, {})
+          this.rootChannel.addSubChannel(element, {})
         }
       })
       return
     }
 
-    this.currentChannel = this.connection.channelById(
-      this.user?.channel?.channel_id
-    )
+    if (this.user?.channel?.channel_id) {
+      this.currentChannel = this.connection.channelById(
+        this.user.channel.channel_id
+      )
+    } else if (this.user?.channel?.name) {
+      this.currentChannel = this.connection.channelByName(
+        this.user.channel.name
+      )
+    }
 
     if (this.currentChannel) {
       this.connection.user.moveToChannel(this.currentChannel)
@@ -100,6 +101,19 @@ class MumbleInstance {
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
   }
+  createChannel = (channel: string): any => {
+    if (this.rootChannel) {
+      if (!this.connection.channelByName(channel)) {
+        this.rootChannel.addSubChannel(channel, {})
+      }
+    }
+  }
+  joinChannel = (name: string) => {
+    const channel = this.connection.channelByName(name)
+    if (channel) {
+      channel.join()
+    }
+  }
   get getUsersInChannel() {
     return this?.currentChannel?.users.map(user => {
       return {
@@ -108,7 +122,7 @@ class MumbleInstance {
     })
   }
   get flatChannels() {
-    return Object.values(this.channels)
+    return Object.values(this.establishedConnection.channels)
   }
 }
 

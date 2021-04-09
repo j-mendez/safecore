@@ -1,3 +1,8 @@
+import type {
+  Channel as ChannelProps,
+  Connection as ConnectionType
+} from "mumble"
+
 interface User {
   id: number
   value: number
@@ -9,4 +14,8 @@ type AppProps = {
   data?: User[]
 }
 
-export { User, AppProps }
+interface Connection extends ConnectionType {
+  channels: Channel[]
+}
+
+export { AppProps, ChannelProps, Connection, User }
