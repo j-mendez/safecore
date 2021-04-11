@@ -64,7 +64,6 @@ wss.on("connection", function (ws: any) {
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
         const channelName = message?.channel
-
         adminMumble.createChannel(channelName)
 
         await mumble.connect({
@@ -75,7 +74,27 @@ wss.on("connection", function (ws: any) {
           }
         })
 
-        ws.send(JSON.stringify({ data: {}, type: "create-channel" }))
+        ws.send(
+          JSON.stringify({
+            data: {
+              name: mumble.currentChannel.name,
+              description: mumble.currentChannel.description,
+              id: mumble.currentChannel.id
+            },
+            type: "create-channel"
+          })
+        )
+
+        const detectUsers = () => {
+          ws.send(
+            JSON.stringify({
+              data: mumble?.getUsersInChannel || [],
+              type: "channel-users"
+            })
+          )
+        }
+
+        destroy = callHandlerEveryN(detectUsers, MESSAGES_PER_SECOND)
       }
     }
 
