@@ -15,7 +15,7 @@ type AppProps = {
 }
 
 interface Connection extends ConnectionType {
-  channels: Channel[]
+  channels: ChannelProps[]
 }
 
 export { AppProps, ChannelProps, Connection, User }

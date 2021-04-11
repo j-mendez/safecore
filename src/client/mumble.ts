@@ -3,6 +3,7 @@ import Channel from "mumble/lib/Channel"
 import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
+
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
 type User = {
@@ -29,7 +30,6 @@ class MumbleInstance {
 
     if (!this.user) {
       this.rootChannel = new Channel(connection.rootChannel, this.connection)
-      // connection.rootChannel.setName("Global")
       defaultChannels.forEach((element: string) => {
         if (!this.connection.channelByName(element)) {
           this.rootChannel.addSubChannel(element, {})
