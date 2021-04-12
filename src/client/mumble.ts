@@ -3,8 +3,13 @@ import Channel from "mumble/lib/Channel"
 import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
+import fs from "fs"
+
+var input = fs.createReadStream("sin.pcm")
 
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
+
+// input.pipe(this.connection.inputStream())
 
 type User = {
   name?: string
@@ -84,6 +89,7 @@ class MumbleInstance {
   disconnect = () => {
     try {
       this.connection?.disconnect()
+      console.log("Disconnected")
     } catch (e) {
       console.error(e)
     }
@@ -100,6 +106,9 @@ class MumbleInstance {
     )
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
+    connection.on("voice-start", function (user) {
+      console.log("User " + user.name + " started voice transmission")
+    })
   }
   createChannel = (channel: string): any => {
     if (this.rootChannel) {

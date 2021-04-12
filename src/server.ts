@@ -14,6 +14,14 @@ const adminMumble = new MumbleInstance()
 
 adminMumble.connect({})
 
+const mumbleConnect = async (mumble: any, message: any) => {
+  await mumble.connect({
+    name: message?.user?.name || String("Anonymous" + Math.random()),
+    pass: message?.pass,
+    channel: message?.channel
+  })
+}
+
 wss.on("connection", function (ws: any) {
   console.log("Socket connected")
   const mumble = new MumbleInstance()
@@ -24,19 +32,26 @@ wss.on("connection", function (ws: any) {
       typeof _message === "string" ? JSON.parse(_message) : _message
     const name = message?.name
 
-    // Connection to Channel
+    // Connect to Channel and authenticate
     if (name === "Connect") {
-      await mumble.connect({
-        name: message?.user?.name || String("Anonymous" + Math.random()),
-        pass: message?.pass,
-        channel: message?.channel
-      })
+      await mumbleConnect(mumble, message)
+
       if (ws.readyState === 1) {
         const detectUsers = () => {
           ws.send(
             JSON.stringify({
               data: mumble?.getUsersInChannel || [],
               type: "channel-users"
+            })
+          )
+
+          const inputStream = mumble.connection.outputStream()
+          // console.log(inputStream.packetBuffer)
+
+          ws.send(
+            JSON.stringify({
+              data: inputStream?.packetBuffer,
+              type: "channel-audio"
             })
           )
         }
@@ -63,15 +78,13 @@ wss.on("connection", function (ws: any) {
     // Create Channel
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
+        // TODO: follow channel interface at name property
         const channelName = message?.channel
         adminMumble.createChannel(channelName)
 
-        await mumble.connect({
-          name: message?.user?.name || String("Anonymous" + Math.random()),
-          pass: message?.pass,
-          channel: {
-            name: channelName
-          }
+        await mumbleConnect(mumble, {
+          ...message,
+          channel: { name: channelName }
         })
 
         ws.send(
@@ -95,6 +108,15 @@ wss.on("connection", function (ws: any) {
         }
 
         destroy = callHandlerEveryN(detectUsers, MESSAGES_PER_SECOND)
+      }
+    }
+
+    if (name === "Speak") {
+      if (ws.readyState === 1) {
+        if (message?.data) {
+          const messageBuffer = Buffer.from(message.data)
+          mumble.connection.sendVoice(messageBuffer)
+        }
       }
     }
 
