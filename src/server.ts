@@ -9,6 +9,9 @@ import { MumbleInstance } from "@app/client/mumble"
 const app = express()
 
 const server = http.createServer(app)
+
+app.use(express.static("audio"))
+
 const wss = new WebSocket.Server({ server })
 const adminMumble = new MumbleInstance()
 

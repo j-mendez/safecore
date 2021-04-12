@@ -4,10 +4,12 @@ import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
+// import path from "path"
 
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
-// input.pipe(this.connection.inputStream())
+// pipe file for user
+var input = fs.createReadStream("./audio/sin.mp3")
 
 type User = {
   name?: string
@@ -54,9 +56,6 @@ class MumbleInstance {
     if (this.currentChannel) {
       this.connection.user.moveToChannel(this.currentChannel)
     }
-
-    // pipe file for user
-    var input = fs.createReadStream("sin.pcm")
 
     input.pipe(connection.inputStream())
 
