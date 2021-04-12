@@ -5,8 +5,6 @@ import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
 
-var input = fs.createReadStream("sin.pcm")
-
 const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
 
 // input.pipe(this.connection.inputStream())
@@ -56,6 +54,11 @@ class MumbleInstance {
     if (this.currentChannel) {
       this.connection.user.moveToChannel(this.currentChannel)
     }
+
+    // pipe file for user
+    var input = fs.createReadStream("sin.pcm")
+
+    input.pipe(connection.inputStream())
 
     if (this.resolve) {
       this.resolve(this.connection)
