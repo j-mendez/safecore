@@ -40,10 +40,29 @@ wss.on("connection", function (ws: any) {
       await mumbleConnect(mumble, message)
 
       if (ws.readyState === 1) {
+        ws.send(
+          JSON.stringify({
+            data: {
+              name: mumble.currentChannel.name,
+              description: mumble.currentChannel.description,
+              id: mumble.currentChannel.id,
+              sessionId: mumble.connection.session,
+              users: mumble?.getUsersInChannel || []
+            },
+            type: "active-channel"
+          })
+        )
+
         const detectUsers = () => {
           ws.send(
             JSON.stringify({
-              data: mumble?.getUsersInChannel || [],
+              data: {
+                name: mumble.currentChannel.name,
+                description: mumble.currentChannel.description,
+                id: mumble.currentChannel.id,
+                sessionId: mumble.connection.session,
+                users: mumble?.getUsersInChannel || []
+              },
               type: "channel-users"
             })
           )
@@ -85,9 +104,10 @@ wss.on("connection", function (ws: any) {
             data: {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
-              id: mumble.currentChannel.id
+              id: mumble.currentChannel.id,
+              sessionId: mumble.connection.session
             },
-            type: "create-channel"
+            type: "active-channel"
           })
         )
 
@@ -108,7 +128,7 @@ wss.on("connection", function (ws: any) {
       if (ws.readyState === 1) {
         if (message?.data) {
           // todo: chunk buffer into 40ms segments to smoothen audio
-          const messageBuffer = Buffer.from(message.data)
+          const messageBuffer = Buffer.from(message.data, "base64")
           mumble.connection.sendVoice(messageBuffer)
         }
       }

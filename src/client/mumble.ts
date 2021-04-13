@@ -5,9 +5,9 @@ import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
 import path from "path"
-import lame from "lame"
+// import lame from "lame"
 import wav from "wav"
-import Speaker from "speaker"
+// import Speaker from "speaker"
 
 type User = {
   name?: string
@@ -47,12 +47,25 @@ class MumbleInstance {
     }
 
     if (this.user) {
-      const outputFileStream = new wav.FileWriter("./audio/output.wav", {
-        sampleRate: 41000,
-        channels: 1
-      })
-      connection.outputStream().pipe(outputFileStream)
+      const channelPath = `./audio/${this.currentChannel.name}/`
+      const userPath = `${channelPath}${this.connection.user.name}/`
 
+      if (!fs.existsSync(channelPath)) {
+        fs.mkdirSync(channelPath)
+      }
+
+      if (!fs.existsSync(userPath)) {
+        fs.mkdirSync(userPath)
+      }
+
+      const outputFileStream = new wav.FileWriter(
+        `${userPath}${this.connection.session}.wav`,
+        {
+          sampleRate: 48000,
+          channels: 1
+        }
+      )
+      connection.outputStream().pipe(outputFileStream)
       // uncomment to get audio to your speaker
       // const speaker = new Speaker({
       //   channels: 1, // 2 channels
