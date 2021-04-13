@@ -6,3 +6,4 @@ cert.pem
 build
 .env
 audio/test.raw
+audio/output.wav

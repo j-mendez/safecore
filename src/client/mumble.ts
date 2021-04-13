@@ -52,6 +52,7 @@ class MumbleInstance {
         channels: 1
       })
       connection.outputStream().pipe(outputFileStream)
+
       // uncomment to get audio to your speaker
       // const speaker = new Speaker({
       //   channels: 1, // 2 channels
