@@ -107,6 +107,7 @@ wss.on("connection", function (ws: any) {
     if (name === "Speak") {
       if (ws.readyState === 1) {
         if (message?.data) {
+          // todo: chunk buffer into 40ms segments to smoothen audio
           const messageBuffer = Buffer.from(message.data)
           mumble.connection.sendVoice(messageBuffer)
         }

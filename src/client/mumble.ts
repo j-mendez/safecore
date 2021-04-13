@@ -5,8 +5,9 @@ import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
 import path from "path"
-const Lame = require("node-lame").Lame
-const FileWriter = require("wav").FileWriter
+import lame from "lame"
+import wav from "wav"
+import Speaker from "speaker"
 
 type User = {
   name?: string
@@ -45,15 +46,27 @@ class MumbleInstance {
       this.connection.user.moveToChannel(this.currentChannel)
     }
 
-    const input = fs.createWriteStream("audio/test.raw")
-    connection.outputStream().pipe(input)
+    if (this.user) {
+      const outputFileStream = new wav.FileWriter("./audio/output.wav", {
+        sampleRate: 41000,
+        channels: 1
+      })
+      connection.outputStream().pipe(outputFileStream)
+      // uncomment to get audio to your speaker
+      // const speaker = new Speaker({
+      //   channels: 1, // 2 channels
+      //   bitDepth: 16, // 16-bit samples
+      //   sampleRate: 44100 //44100     // 44,100 Hz sample rate
+      // })
+      // this.connection.outputStream().pipe(speaker)
+    }
 
     if (this.resolve) {
       this.resolve(this.connection)
     }
   }
   onVoice = event => {
-    console.log(["Speaking", event])
+    // console.log(["Speaking", event])
   }
   connect = async (props: User = {}): Promise<void> => {
     return await new Promise((resolve, reject) => {
