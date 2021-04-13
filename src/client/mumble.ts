@@ -4,12 +4,9 @@ import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
-// import path from "path"
-
-const defaultChannels = ["The Radicals", "Creative Minds", "Personal Branding"]
-
-// pipe file for user
-var input = fs.createReadStream("./audio/sin.mp3")
+import path from "path"
+const Lame = require("node-lame").Lame
+const FileWriter = require("wav").FileWriter
 
 type User = {
   name?: string
@@ -18,14 +15,10 @@ type User = {
 }
 
 class MumbleInstance {
-  constructor() {
-    console.log("Connecting")
-    this.connection = null
-  }
   currentChannel: Channel
   rootChannel: Channel
   user: User
-  connection: Connection
+  connection: Connection = null
   establishedConnection: Connection
   channels: ChannelProps[]
   resolve: (value: unknown) => void
@@ -35,11 +28,6 @@ class MumbleInstance {
 
     if (!this.user) {
       this.rootChannel = new Channel(connection.rootChannel, this.connection)
-      defaultChannels.forEach((element: string) => {
-        if (!this.connection.channelByName(element)) {
-          this.rootChannel.addSubChannel(element, {})
-        }
-      })
       return
     }
 
@@ -57,14 +45,15 @@ class MumbleInstance {
       this.connection.user.moveToChannel(this.currentChannel)
     }
 
-    input.pipe(connection.inputStream())
+    const input = fs.createWriteStream("audio/test.raw")
+    connection.outputStream().pipe(input)
 
     if (this.resolve) {
       this.resolve(this.connection)
     }
   }
   onVoice = event => {
-    console.log(["Mixed voice", event])
+    console.log(["Speaking", event])
   }
   connect = async (props: User = {}): Promise<void> => {
     return await new Promise((resolve, reject) => {
@@ -108,9 +97,6 @@ class MumbleInstance {
     )
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
-    connection.on("voice-start", function (user) {
-      console.log("User " + user.name + " started voice transmission")
-    })
   }
   createChannel = (channel: string): any => {
     if (this.rootChannel) {

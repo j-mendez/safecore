@@ -47,16 +47,6 @@ wss.on("connection", function (ws: any) {
               type: "channel-users"
             })
           )
-
-          // const inputStream = mumble.connection.outputStream()
-          // // console.log(inputStream.packetBuffer)
-
-          // ws.send(
-          //   JSON.stringify({
-          //     data: inputStream?.packetBuffer,
-          //     type: "channel-audio"
-          //   })
-          // )
         }
 
         destroy = callHandlerEveryN(detectUsers, MESSAGES_PER_SECOND)
