@@ -25,6 +25,7 @@ wss.on("connection", function (ws: any) {
   const mumble = new MumbleInstance()
   // destroy handle
   let destroy: any
+  let destroyChannels: any
 
   ws.on("message", async function (_message: any) {
     const message = parseMessage(_message)
@@ -135,11 +136,19 @@ wss.on("connection", function (ws: any) {
     // Get Channels
     if (name === "Channels") {
       if (ws.readyState === 1) {
-        ws.send(
-          JSON.stringify({
-            data: Object.values(adminMumble.flatChannels),
-            type: "channels"
-          })
+        const getAllChannels = () => {
+          ws.send(
+            JSON.stringify({
+              data: Object.values(adminMumble.flatChannels),
+              type: "channels"
+            })
+          )
+        }
+        getAllChannels()
+
+        destroyChannels = callHandlerEveryN(
+          getAllChannels,
+          MESSAGES_PER_SECOND * 5
         )
       }
     }
@@ -150,6 +159,10 @@ wss.on("connection", function (ws: any) {
     if (destroy) {
       destroy()
       destroy = null
+    }
+    if (destroyChannels) {
+      destroyChannels()
+      destroyChannels = null
     }
   })
 })
