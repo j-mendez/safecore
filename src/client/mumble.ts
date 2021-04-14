@@ -4,10 +4,8 @@ import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
-import path from "path"
 import lame from "lame"
 import wav from "wav"
-// import Speaker from "speaker"
 
 type User = {
   name?: string
@@ -81,14 +79,6 @@ class MumbleInstance {
         const encoder = new lame.Encoder(format)
         reader.pipe(encoder).pipe(output)
       }
-
-      // uncomment to get audio to your speaker
-      // const speaker = new Speaker({
-      //   channels: 1, // 2 channels
-      //   bitDepth: 16, // 16-bit samples
-      //   sampleRate: 44100 //44100     // 44,100 Hz sample rate
-      // })
-      // this.connection.outputStream().pipe(speaker)
     }
 
     if (this.resolve) {

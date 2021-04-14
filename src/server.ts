@@ -11,7 +11,6 @@ import { pipeline } from "stream"
 
 const app = express()
 
-http.globalAgent.keepAlive = true
 const server = http.createServer(app)
 
 app.use(express.static("audio"))
@@ -64,7 +63,8 @@ wss.on("connection", function (ws: any) {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
               id: mumble.currentChannel.id,
-              sessionId: mumble.connection.session,
+              // @ts-ignore
+              sessionId: mumble.connection?.session,
               users: mumble?.getUsersInChannel || []
             },
             type: "active-channel"
@@ -78,7 +78,8 @@ wss.on("connection", function (ws: any) {
                 name: mumble.currentChannel.name,
                 description: mumble.currentChannel.description,
                 id: mumble.currentChannel.id,
-                sessionId: mumble.connection.session as any,
+                // @ts-ignore
+                sessionId: mumble.connection?.session,
                 users: mumble?.getUsersInChannel || []
               },
               type: "channel-users"
@@ -123,7 +124,8 @@ wss.on("connection", function (ws: any) {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
               id: mumble.currentChannel.id,
-              sessionId: mumble.connection.session as any
+              // @ts-ignore
+              sessionId: mumble.connection?.session
             },
             type: "active-channel"
           })
