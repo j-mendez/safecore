@@ -57,7 +57,7 @@ class MumbleInstance {
       }
 
       const outputFileStream = new wav.FileWriter(
-        `${userPath}${this.connection.session}.wav`,
+        `${userPath}${this.connection?.session}.wav`,
         {
           sampleRate: 48000,
           channels: 1
@@ -131,10 +131,12 @@ class MumbleInstance {
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
   }
-  createChannel = (channel: string): any => {
+  createChannel = (channel: Channel): any => {
     if (this.rootChannel) {
-      if (!this.connection.channelByName(channel)) {
-        this.rootChannel.addSubChannel(channel, {})
+      if (!this.connection.channelByName(channel?.name)) {
+        this.rootChannel.addSubChannel(channel.name, {
+          description: channel?.description
+        })
       }
     }
   }

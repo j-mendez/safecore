@@ -86,12 +86,15 @@ wss.on("connection", function (ws: any) {
     if (name === "CreateChannel") {
       if (ws.readyState === 1) {
         // TODO: follow channel interface at name property
-        const channelName = message?.channel
-        adminMumble.createChannel(channelName)
+        const channelName = message?.channel.name
+        adminMumble.createChannel(message?.channel)
 
         await mumbleConnect(mumble, {
           ...message,
-          channel: { name: channelName }
+          channel: {
+            name: channelName,
+            description: message?.channel.description
+          }
         })
 
         ws.send(
