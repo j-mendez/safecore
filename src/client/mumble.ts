@@ -148,8 +148,14 @@ class MumbleInstance {
   }
   get getUsersInChannel() {
     return this?.currentChannel?.users.map(user => {
+      const sessionId = user?.client?.user?.session
+      const userMap = user?.client?.connection.users[sessionId]
+
       return {
-        name: user?.name
+        name: user?.name,
+        id: user?.id,
+        prioritySpeaker: user?.prioritySpeaker,
+        speaking: userMap?.talking
       }
     })
   }
