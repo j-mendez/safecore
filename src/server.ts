@@ -2,12 +2,10 @@ import express from "express"
 import http from "http"
 import WebSocket from "ws"
 import { AddressInfo } from "net"
-import { callHandlerEveryN } from "@app/utils"
+import { callHandlerEveryN, mumbleConnect, parseMessage } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND } from "@app/config"
 import { MumbleInstance } from "@app/client/mumble"
-import fs from "fs"
-import { pipeline } from "stream"
-// const ffmpeg = require("./lib/ffmpeg")
+import { getMp3 } from "./streams/get-mp3"
 
 const app = express()
 
@@ -15,41 +13,21 @@ const server = http.createServer(app)
 
 app.use(express.static("audio"))
 
-app.get("/audio/:channel/:user/:sessionId", function (req, res) {
-  const { channel, user, sessionId } = req.params
-  const filePath = `./audio/${channel}/${user}/${sessionId}`
-  const stat = fs.statSync(filePath)
-
-  res.writeHead(200, {
-    "Content-Type": "audio/mpeg",
-    "Content-Length": stat.size
-  })
-
-  const readStream = fs.createReadStream(filePath)
-  pipeline(readStream, res, () => {})
-})
+app.get("/audio/:channel/:user/:sessionId", getMp3)
 
 const wss = new WebSocket.Server({ server })
 const adminMumble = new MumbleInstance()
 
 adminMumble.connect({})
 
-const mumbleConnect = async (mumble: any, message: any) => {
-  await mumble.connect({
-    name: message?.user?.name || String("Anonymous" + Math.random()),
-    pass: message?.pass,
-    channel: message?.channel
-  })
-}
-
 wss.on("connection", function (ws: any) {
   console.log("Socket connected")
   const mumble = new MumbleInstance()
+  // destroy handle
   let destroy: any
 
   ws.on("message", async function (_message: any) {
-    const message =
-      typeof _message === "string" ? JSON.parse(_message) : _message
+    const message = parseMessage(_message)
     const name = message?.name
 
     // Connect to Channel and authenticate
@@ -63,7 +41,6 @@ wss.on("connection", function (ws: any) {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
               id: mumble.currentChannel.id,
-              // @ts-ignore
               sessionId: mumble.connection?.session,
               users: mumble?.getUsersInChannel || []
             },
@@ -78,7 +55,6 @@ wss.on("connection", function (ws: any) {
                 name: mumble.currentChannel.name,
                 description: mumble.currentChannel.description,
                 id: mumble.currentChannel.id,
-                // @ts-ignore
                 sessionId: mumble.connection?.session,
                 users: mumble?.getUsersInChannel || []
               },
@@ -124,7 +100,6 @@ wss.on("connection", function (ws: any) {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
               id: mumble.currentChannel.id,
-              // @ts-ignore
               sessionId: mumble.connection?.session
             },
             type: "active-channel"
