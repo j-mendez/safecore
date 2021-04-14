@@ -5,12 +5,30 @@ import { AddressInfo } from "net"
 import { callHandlerEveryN } from "@app/utils"
 import { PORT, MESSAGES_PER_SECOND } from "@app/config"
 import { MumbleInstance } from "@app/client/mumble"
+import fs from "fs"
+import { pipeline } from "stream"
+// const ffmpeg = require("./lib/ffmpeg")
 
 const app = express()
 
+http.globalAgent.keepAlive = true
 const server = http.createServer(app)
 
 app.use(express.static("audio"))
+
+app.get("/audio/:channel/:user/:sessionId", function (req, res) {
+  const { channel, user, sessionId } = req.params
+  const filePath = `./audio/${channel}/${user}/${sessionId}`
+  const stat = fs.statSync(filePath)
+
+  res.writeHead(200, {
+    "Content-Type": "audio/mpeg",
+    "Content-Length": stat.size
+  })
+
+  const readStream = fs.createReadStream(filePath)
+  pipeline(readStream, res, () => {})
+})
 
 const wss = new WebSocket.Server({ server })
 const adminMumble = new MumbleInstance()
@@ -60,7 +78,7 @@ wss.on("connection", function (ws: any) {
                 name: mumble.currentChannel.name,
                 description: mumble.currentChannel.description,
                 id: mumble.currentChannel.id,
-                sessionId: mumble.connection.session,
+                sessionId: mumble.connection.session as any,
                 users: mumble?.getUsersInChannel || []
               },
               type: "channel-users"
@@ -105,7 +123,7 @@ wss.on("connection", function (ws: any) {
               name: mumble.currentChannel.name,
               description: mumble.currentChannel.description,
               id: mumble.currentChannel.id,
-              sessionId: mumble.connection.session
+              sessionId: mumble.connection.session as any
             },
             type: "active-channel"
           })

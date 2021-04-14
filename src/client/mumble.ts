@@ -5,7 +5,7 @@ import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
 import path from "path"
-// import lame from "lame"
+import lame from "lame"
 import wav from "wav"
 // import Speaker from "speaker"
 
@@ -65,7 +65,23 @@ class MumbleInstance {
           channels: 1
         }
       )
-      connection.outputStream().pipe(outputFileStream)
+
+      const reader = new wav.Reader()
+
+      connection.outputStream().pipe(outputFileStream).pipe(reader)
+
+      const output = fs.createWriteStream(
+        `${userPath}${this.connection.session}.mp3`
+      )
+
+      reader.on("format", onFormat)
+
+      function onFormat(format) {
+        console.error("WAV format: %j", format)
+        const encoder = new lame.Encoder(format)
+        reader.pipe(encoder).pipe(output)
+      }
+
       // uncomment to get audio to your speaker
       // const speaker = new Speaker({
       //   channels: 1, // 2 channels
