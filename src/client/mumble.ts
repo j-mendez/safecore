@@ -10,16 +10,17 @@ import wav from "wav"
 import ffmpeg from "ffmpeg"
 import type { Writable } from "stream"
 
-type User = {
+interface UserProps extends User {
   name?: string
   pass?: string
   channel?: Partial<ChannelProps> & { channel_id?: number }
+  talking?: boolean
 }
 
 class MumbleInstance {
   currentChannel: Channel
   rootChannel: Channel
-  user: User
+  user: UserProps
   connection: Connection = null
   establishedConnection: Connection
   channels: ChannelProps[]
@@ -120,7 +121,7 @@ class MumbleInstance {
   onVoice = event => {
     // console.log(["Speaking", event])
   }
-  connect = async (props: User = {}): Promise<void> => {
+  connect = async (props: UserProps = {}): Promise<void> => {
     return await new Promise((resolve, reject) => {
       try {
         this.resolve = resolve
@@ -168,14 +169,19 @@ class MumbleInstance {
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
 
-    connection.on("voice-start", function (user) {
+    connection.on("voice-start", user => {
       console.log("TALKING", user)
-      user.talking = true
+      const cu = this.connection.userByName(user.name) as UserProps
+      cu.talking = true
+
       return user
     })
-    connection.on("voice-end", function (user) {
+
+    connection.on("voice-end", user => {
       console.log("TALKING END", user)
-      user.talking = false
+      const cu = this.connection.userByName(user.name) as UserProps
+      cu.talking = false
+
       return user
     })
   }
@@ -201,13 +207,13 @@ class MumbleInstance {
   get getUsersInChannel() {
     return this?.currentChannel?.users.map(user => {
       const sessionId = user?.client?.user?.session
-      const userMap = user?.client?.connection?.users[sessionId]
 
       return {
         name: user?.name,
+        sessionId,
         id: user?.id,
         prioritySpeaker: user?.prioritySpeaker,
-        speaking: userMap?.talking
+        speaking: user?.talking
       }
     })
   }
