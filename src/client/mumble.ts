@@ -8,6 +8,7 @@ import path from "path"
 import lame from "lame"
 import wav from "wav"
 import ffmpeg from "ffmpeg"
+import type { Writable } from "stream"
 
 type User = {
   name?: string
@@ -22,6 +23,7 @@ class MumbleInstance {
   connection: Connection = null
   establishedConnection: Connection
   channels: ChannelProps[]
+  audioStream: Writable
   resolve: (value: unknown) => void
   onInit = connection => {
     console.log(["Connection initialized"])
@@ -78,16 +80,17 @@ class MumbleInstance {
         reader.pipe(encoder).pipe(output)
       })
 
-      const stream = connection
+      this.audioStream = connection
         .outputStream()
         .pipe(outputFileStream)
         .pipe(reader)
 
       let tick = 0
-      stream.on("data", format => {
+
+      this.audioStream.on("data", format => {
         process.nextTick(() => {
           tick++
-          if (tick === 180) {
+          if (tick === 200) {
             ffmpeg(path.resolve(mp3Path), (err, audio) => {
               if (!err) {
                 console.log("The audio file is ready to be processed")
@@ -141,7 +144,12 @@ class MumbleInstance {
   }
   disconnect = () => {
     try {
-      this.connection?.disconnect()
+      if (this.audioStream) {
+        this.audioStream.end()
+      }
+      process.nextTick(() => {
+        this.connection?.disconnect()
+      })
       console.log("Disconnected")
     } catch (e) {
       console.error(e)
