@@ -7,7 +7,7 @@ export const getMp3 = function (req, res) {
   const stat = fs.statSync(filePath)
 
   res.writeHead(200, {
-    "Content-Type": "audio/mpeg",
+    "Content-Type": "video/MP2T",
     "Content-Length": stat.size
   })
 

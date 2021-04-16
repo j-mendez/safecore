@@ -4,8 +4,10 @@ import User from "mumble/lib/User"
 import { mumbleOptions } from "../config"
 import type { Connection, ChannelProps } from "../types"
 import fs from "fs"
+import path from "path"
 import lame from "lame"
 import wav from "wav"
+import ffmpeg from "ffmpeg"
 
 type User = {
   name?: string
@@ -64,21 +66,48 @@ class MumbleInstance {
         }
       )
 
+      const soundBasePath = `${userPath}${this.connection.session}`
+      const mp3Path = `${soundBasePath}.mp3`
+      const output = fs.createWriteStream(mp3Path)
+
       const reader = new wav.Reader()
 
-      connection.outputStream().pipe(outputFileStream).pipe(reader)
-
-      const output = fs.createWriteStream(
-        `${userPath}${this.connection.session}.mp3`
-      )
-
-      reader.on("format", onFormat)
-
-      function onFormat(format) {
-        console.error("WAV format: %j", format)
+      reader.on("format", format => {
+        console.info("WAV format: %j", format)
         const encoder = new lame.Encoder(format)
         reader.pipe(encoder).pipe(output)
-      }
+      })
+
+      const stream = connection
+        .outputStream()
+        .pipe(outputFileStream)
+        .pipe(reader)
+
+      let tick = 0
+      stream.on("data", format => {
+        process.nextTick(() => {
+          tick++
+          if (tick === 180) {
+            ffmpeg(path.resolve(mp3Path), (err, audio) => {
+              if (!err) {
+                console.log("The audio file is ready to be processed")
+                audio
+                  .setAudioChannels(2)
+                  .save(`${soundBasePath}.m3u8`, function (error, file) {
+                    if (!error) {
+                      console.log("Audio file: " + file)
+                    } else {
+                      console.log("Error on hls: " + error)
+                    }
+                  })
+              } else {
+                console.log("Error: " + err)
+              }
+            })
+            tick = 0
+          }
+        })
+      })
     }
 
     if (this.resolve) {
@@ -130,18 +159,33 @@ class MumbleInstance {
     )
     connection.on("initialized", this.onInit)
     connection.on("voice", this.onVoice)
+
+    connection.on("voice-start", function (user) {
+      console.log("TALKING", user)
+      user.talking = true
+      return user
+    })
+    connection.on("voice-end", function (user) {
+      console.log("TALKING END", user)
+      user.talking = false
+      return user
+    })
   }
   createChannel = (channel: Channel): any => {
     if (this.rootChannel) {
-      if (!this.connection.channelByName(channel?.name)) {
-        this.rootChannel.addSubChannel(channel.name, {
+      const channelName = String(channel?.name).replace(/\s+/g, "")
+
+      if (!this.connection.channelByName(channelName)) {
+        this.rootChannel.addSubChannel(channelName, {
           description: channel?.description
         })
       }
     }
   }
   joinChannel = (name: string) => {
-    const channel = this.connection.channelByName(name)
+    const channelName = String(name).replace(/\s+/g, "")
+
+    const channel = this.connection.channelByName(channelName)
     if (channel) {
       channel.join()
     }
@@ -149,7 +193,7 @@ class MumbleInstance {
   get getUsersInChannel() {
     return this?.currentChannel?.users.map(user => {
       const sessionId = user?.client?.user?.session
-      const userMap = user?.client?.connection.users[sessionId]
+      const userMap = user?.client?.connection?.users[sessionId]
 
       return {
         name: user?.name,
